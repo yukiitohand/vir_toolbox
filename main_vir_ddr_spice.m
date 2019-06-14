@@ -12,7 +12,7 @@ HKTABA_ceres = crismTABread(joinPath(dir_ceres_L1A,[basenameA_ceres_TAB '.TAB'])
 % time_strt_dtobj = datetime(time_strt,'format','yyyy-MM-dd''T''hh:mm:ss.SSS');
 
 %%
-cspice_furnsh( 'spice/ker' )
+cspice_furnsh( 'spice/DAWN_CSH_R01_edited.TM' )
 
 abcorr  = 'CN+S';
 method  = 'Ellipsoid';
@@ -112,7 +112,7 @@ plot([lons_IFOV12(end) lons_IFOV34(end)],[lats_IFOV12(end) lats_IFOV34(end)]);
 % It's always good form to unload kernels after use,
 % particularly in MATLAB due to data persistence.
 %
-%cspice_kclear
+cspice_kclear
 
 %%
 % create DDR
