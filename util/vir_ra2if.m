@@ -14,6 +14,6 @@ end
 SS= [SolSpcdata.tab.data.SPECTRAL_IRRADIANCE]';
 B = length(SS);
 
-I1Bim_if = I1Bdata.img ./ reshape(SS,[1,1,B]) .*pi .* (d_au.^2);
+I1Bim_if = I1Bdata.img  .* ((pi .* (d_au.^2)) ./ reshape(SS,[1,1,B]));
 
 end

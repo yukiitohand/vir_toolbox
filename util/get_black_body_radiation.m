@@ -4,7 +4,7 @@ function [bb_spc] = get_black_body_radiation(wv_um,T)
 %   wv_um: wavelength vector, scalar [micron]
 %   T : temperature Kelvin
 %  OUTPUTS
-%   bb_spc: black body radiation spectrum
+%   bb_spc: black body radiation spectrum [W / (sr*m^2*m )]
 
 % planck constant
 h = 6.62607015*10^(-34); % Js
