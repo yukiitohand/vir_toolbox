@@ -137,7 +137,7 @@ infoAlib_nodup = infoAlib(no_duplicates);
 Alib_b_nrmed_sub_valid_nodup = Alib_b_nrmed_sub_valid(:,no_duplicates);
 
 
-%%
+%% version 1
 biasList = nan(1,256,432);
 multList = nan(1,256,432);
 for c = 5:256
@@ -193,8 +193,43 @@ end
 
 I1Bim_if_cor = (I1Bim_if-biasList)./multList;
 
+%% Improved dark removal on I1A data.
+img_b1_if = nan(sum(isopen),256,432);
+img_b1_dark = nan(1,256,432);
+img_b1_d  = nan(sum(isopen),256,432);
+[defective_pixels] = vir_defective_pixels();
+good_pixels = (defective_pixels==0);
+good_pixels_1nan = convertBoolTo1nan(good_pixels);
+img_A = I1Adata.img.*good_pixels_1nan; % only consider good pixels.
+for c = 5:256
+    %%
+    %c = 66;
+    % bands = 180:294;
+    %imgc = squeeze(I1Bim_if(:,c,:))';
+    %imgc_b = imgc(bands,:);
+    % covert I1A to I/F
+    imgc_A = squeeze(img_A(isopen,c,:))';
+    dark = squeeze(img_A(1,c,:));
+    valid_bands = squeeze(good_pixels(:,c,bands));
+    s_opt = select_stretch_scaling_param4dark(imgc_A(bands(valid_bands),:),dark(bands(valid_bands)));
+    dark_s = stretch_dark(dark(bands),s_opt);
+    
+    img_b1_dark(1,c,bands) = reshape(dark_s',[1,1,length(bands)]);
 
-%%
+    imgc_A_d = imgc_A(bands,:) - dark_s;
+    imgc_A_d_r = imgc_A_d./(squeeze(respdata.img(1,c,bands))*ir_expo);
+    imgc_b1 = imgc_A_d_r ./ SS(bands) .*pi .* (d_au.^2);
+    
+    img_b1_d(:,c,bands) = reshape(imgc_A_d',[sum(isopen),1,length(bands)]);
+    img_b1_if(:,c,bands) = reshape(imgc_b1',[sum(isopen),1,length(bands)]);
+    
+%     figure(1); plot(bands,imgc_A_d);
+%     title(num2str(c));
+%     pause;
+
+end
+
+%% version 3 (version 2, you need to turn off defective pixel removal)
 biasList = nan(1,256,432);
 multList = nan(1,256,432);
 % load artifact_matrix_v2.mat artifact_matrix
@@ -261,7 +296,7 @@ end
 I1Bim_if_cor_v4 = (img_b1_if-biasList)./multList;
 I1Bim_if_cor_v4(BPs) = img_model(BPs);
 
-%% destriping
+%% destriping (post processing, if needed, just tested)
 img_means = nanmean(img_model,1);
 img_means_fil = ones(size(img_means));
 n=5;
@@ -277,42 +312,11 @@ bb = 200;
 figure; scx_rgb(img_model(:,:,bb).*coeff(:,:,bb));
 
 I1Bim_if_cor_v4_fil = I1Bim_if_cor_v4 .* coeff;
+
 %%
-img_b1_if = nan(sum(isopen),256,432);
-img_b1_dark = nan(1,256,432);
-img_b1_d  = nan(sum(isopen),256,432);
-[defective_pixels] = vir_defective_pixels();
-good_pixels = (defective_pixels==0);
-good_pixels_1nan = convertBoolTo1nan(good_pixels);
-img_A = I1Adata.img.*good_pixels_1nan; % only consider good pixels.
-for c = 5:256
-    %%
-    %c = 66;
-    % bands = 180:294;
-    %imgc = squeeze(I1Bim_if(:,c,:))';
-    %imgc_b = imgc(bands,:);
-    % covert I1A to I/F
-    imgc_A = squeeze(img_A(isopen,c,:))';
-    dark = squeeze(img_A(1,c,:));
-    valid_bands = squeeze(good_pixels(:,c,bands));
-    s_opt = select_stretch_scaling_param4dark(imgc_A(bands(valid_bands),:),dark(bands(valid_bands)));
-    dark_s = stretch_dark(dark(bands),s_opt);
-    
-    img_b1_dark(1,c,bands) = reshape(dark_s',[1,1,length(bands)]);
-
-    imgc_A_d = imgc_A(bands,:) - dark_s;
-    imgc_A_d_r = imgc_A_d./(squeeze(respdata.img(1,c,bands))*ir_expo);
-    imgc_b1 = imgc_A_d_r ./ SS(bands) .*pi .* (d_au.^2);
-    
-    img_b1_d(:,c,bands) = reshape(imgc_A_d',[sum(isopen),1,length(bands)]);
-    img_b1_if(:,c,bands) = reshape(imgc_b1',[sum(isopen),1,length(bands)]);
-    
-%     figure(1); plot(bands,imgc_A_d);
-%     title(num2str(c));
-%     pause;
-
-end
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% for printing
+%
 %%
 a2 = load('VIR_IR_1B_1_366393039_3_cor_b2590t3773_v2.mat');
 I1Bim_if_cor_v2 = (img_b1_if-a2.biasList)./a2.multList;
