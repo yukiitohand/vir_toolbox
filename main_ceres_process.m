@@ -1,5 +1,5 @@
 sctime = 498259058;
-sctime = 494253260;
+% sctime = 494253260;
 vir_obs = get_vir_obs_info(sctime,'dwld',0);
 I1Bdata = VIRdata(vir_obs.basename_ir_1B,vir_obs.dirpath_ir_1B);
 I1Adata = VIRdata(vir_obs.basename_ir_1A,vir_obs.dirpath_ir_1A);
