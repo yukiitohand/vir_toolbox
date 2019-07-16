@@ -1,4 +1,4 @@
-function [idxes_valid,isinc_lt_theta_list] = vir_isinc_lt_theta(sctime_info,varargin)
+function [idxes_valid,isinc_lt_theta_list,img_sctime_list] = vir_isinc_lt_theta(sctime_info,varargin)
 % [idxes_valid,isinc_lt_50_list] = vir_isinc_lt_theta(sctime_info,varargin)
 %  Evaluate incident angles at each pixels for given sets of images
 %  specified as (sctim_info). The resulting images are row stucked.
@@ -72,8 +72,10 @@ for i=1:length(sctime_info)
 
     if i==1
         isinc_lt_theta_list = isinc_lt_theta;
+        img_sctime_list = repmat(sctime,[vir1Bdata.hdr.lines,1]);
     else
         isinc_lt_theta_list = cat(1,isinc_lt_theta_list,isinc_lt_theta);
+        img_sctime_list = cat(1,img_sctime_list,repmat(sctime,[vir1Bdata.hdr.lines,1]));
     end
     
 end
