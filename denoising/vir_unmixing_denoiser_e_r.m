@@ -1,8 +1,40 @@
 function [X,d,c,C,Z,Xlib,X_BB,bp] = vir_unmixing_denoiser_e_r(Alib,BB,Y,wv,varargin)
-% solve the optimization problem
+% [X,d,c,C,Z,Xlib,X_BB,bp] = vir_unmixing_denoiser_e_r(Alib,BB,Y,wv,varargin)
+%   de-noising vir I/F data with unmixing approach.
 % 
-%   minimize || Y-diag(d)(AX+B)-c1^T ||_{1,1} + lamda_a* || X ||_{1,1}
+%   minimize || Y-diag(d)([A BB]X+B)-c1^T ||_{1,1} + lamda_a* || X ||_{1,1}
+%
+%  using an alternating minimization approach.
+%  Thresholding based denoising is performed. Denoising is optimized for 
+%  Vesta data processing where d0 is set to a vector of ones, so the 
+%  threshold values are set large.
+%  If the residual (from its median) is greater than 10 sigma, then that is
+%  considered as a temporal spike. 10 sigma is quite conservative.
 % 
+%  INPUTS
+%    Alib: [L,Nlib] library matrix, whose columns storing endmembers
+%    BB  : [L,Nbb ] matrix expressing emission spectra
+%    Y   : [L,Ny  ] observation spectra (I/F)
+%    wv  : [L,1   ] wavelength vector
+%  OUPUTS
+%    X   : [Nlib+Nbb,Ny] abundance matrix
+%    d   : [L,1   ] multiplicative correction factor
+%    c   : [L,1   ] additive correction term
+%    C   : [L,L   ] Convex bases
+%    Z   : [L,Ny  ] coefficient for convex bases
+%    Xlib: [Nlib,Ny] abundance matrix for endmembers
+%    X_BB: [Nbb, Ny] abundance matrix for emission spectra
+%    bp  : [L,Ny]   bad pixels, boolean
+%  OPTIONAL PARAMETERS
+%    'c0': initial additive correction term 
+%          (default) 0
+%    'd0': initial multiplicative correction factor
+%          (default) 1
+%    'lambda_a_lib': trade-off parameter for library endmembers
+%              (default) 0.01
+%    'lambda_BB'   : trade-off parameter for emission spectra
+%              (default) 0.5
+%   
 
 c0 = [];
 d0 = [];

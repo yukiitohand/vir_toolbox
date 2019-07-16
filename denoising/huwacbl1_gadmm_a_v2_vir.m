@@ -1,7 +1,10 @@
 function [x,z,C,r,d,rho,Rhov,res_p,res_d] = huwacbl1_gadmm_a_v2_vir(A,y,wv,varargin)
-% [x,z,res_p,res_d] = huwacbl1_gadmm_a(A,y,wv,varargin)
+% [x,z,res_p,res_d] = huwacbl1_gadmm_a_v2_vir(A,y,wv,varargin)
 % hyperspectral unmixing with adaptive concave background (HUWACB) via 
 % a generalized alternating direction method of multipliers (ADMM)
+% 
+% A descendent of huwacbl1_gadmm_a_v2 The upper and lower limit of the Rho
+% is modified.
 %
 %  Inputs
 %     A : dictionary matrix (L x N) where Na is the number of atoms in the

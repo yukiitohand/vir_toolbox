@@ -1,8 +1,21 @@
 function [X,d,c] = vir_unmixing_denoiser(A,Y,wv)
-% solve the optimization problem
+% [X,d,c,C,Z,Xlib,X_BB] = vir_unmixing_denoiser(Alib,BB,Y,wv,varargin)
+%   de-noising vir I/F data with unmixing approach.
 % 
 %   minimize || Y-diag(d)(AX+B)-c1^T ||_{1,1} + lamda_a* || X ||_{1,1}
+%
+%  using an alternating minimization approach.
+%  Denoising is not performed.
 % 
+%  INPUTS
+%    A: [L,N] library matrix, whose columns storing endmembers
+%    Y   : [L,Ny  ] observation spectra (I/F)
+%    wv  : [L,1   ] wavelength vector
+%  OUPUTS
+%    X   : [Nlib+Nbb,Ny] abundance matrix
+%    d   : [L,1   ] multiplicative correction factor
+%    c   : [L,1   ] additive correction term
+%   
 
 [L,Ny] = size(Y);
 [L,N] = size(A);
@@ -22,11 +35,11 @@ vec1Ny = ones(1,Ny);
 for i=1:5
     Ycd = (Y-c)./d;
     % minimize over X and B
-%     C = continuumDictionary(wv);
-%     s_c = vnorms(C,1);
-%     C = bsxfun(@rdivide,C,s_c);
-%     C = C*2;
-%     C(:,2:end-1) = -C(:,2:end-1);
+    C = continuumDictionary(wv);
+    s_c = vnorms(C,1);
+    C = bsxfun(@rdivide,C,s_c);
+    C = C*2;
+    C(:,2:end-1) = -C(:,2:end-1);
     [X,Z,C,r,d,rho,Rhov,res_p,res_d] = huwacbl1_gadmm_a_v2(A,Ycd,wv,...
          'LAMBDA_A',1,'tol',1e-5,'maxiter',1000,'verbose','yes','ConcaveBase',C);
     
