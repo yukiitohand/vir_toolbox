@@ -122,7 +122,7 @@ vesta_parameters = load('VIR_IR_1B_1_366393039_3_cor_b2590t3773_v2.mat');
 biasList = nan(1,256,432);
 multList = nan(1,256,432);
 
-%%
+%% version 1
 for c = 5:256
     %%
 %     c = 49;
@@ -181,12 +181,49 @@ end
 
 I1Bim_if_cor = (I1Bim_if-biasList)./multList;
 
+%% Improved dark removal on I1A data.
+img_b1_if = nan(sum(isopen),256,432);
+img_b1_dark = nan(1,256,432);
+img_b1_d  = nan(sum(isopen),256,432);
+[defective_pixels] = vir_defective_pixels();
+good_pixels = (defective_pixels==0);
+good_pixels_1nan = convertBoolTo1nan(good_pixels);
+img_A = I1Adata.img.*good_pixels_1nan; % only consider good pixels.
+for c = 5:256
+    %%
+    %c = 66;
+    % bands = 180:294;
+    %imgc = squeeze(I1Bim_if(:,c,:))';
+    %imgc_b = imgc(bands,:);
+    % covert I1A to I/F
+    imgc_A = squeeze(img_A(isopen,c,:))';
+    dark = squeeze(img_A(1,c,:));
+    valid_bands = squeeze(good_pixels(:,c,bands));
+    s_opt = select_stretch_scaling_param4dark(imgc_A(bands(valid_bands),:),dark(bands(valid_bands)));
+    dark_s = stretch_dark(dark(bands),s_opt);
+    
+    img_b1_dark(1,c,bands) = reshape(dark_s',[1,1,length(bands)]);
+
+    imgc_A_d = imgc_A(bands,:) - dark_s;
+    imgc_A_d_r = imgc_A_d./(squeeze(respdata.img(1,c,bands))*ir_expo);
+    imgc_b1 = imgc_A_d_r ./ SS(bands) .*pi .* (d_au.^2);
+    
+    img_b1_d(:,c,bands) = reshape(imgc_A_d',[sum(isopen),1,length(bands)]);
+    img_b1_if(:,c,bands) = reshape(imgc_b1',[sum(isopen),1,length(bands)]);
+    
+%     figure(1); plot(bands,imgc_A_d);
+%     title(num2str(c));
+%     pause;
+
+end
+%I1Bim_if_cor_v2 = (img_b1_if-biasList)./multList;
+
 %%
 vesta_parameters = load('VIR_IR_1B_1_366393039_3_cor_b2590t3773_v4.mat');
 biasList = nan(1,256,432);
 multList = nan(1,256,432);
 
-%%
+%% version 3 (version 2, you need to turn off defective pixel removal)
 for c = 5:256
     %%
   %  c=50;
@@ -260,6 +297,7 @@ end
 
 I1Bim_if_cor_v4 = (img_b1_if-biasList)./multList;
 
+% postprocessing (filling bad pixels)
 I1Bim_if_cor_v4_bands = I1Bim_if_cor_v4(:,:,bands);
 img_model_bands = img_model(:,:,bands);
 isnan_bands = isnan(I1Bim_if_cor_v4_bands);
@@ -270,94 +308,8 @@ I1Bim_if_cor_v4(BPs) = img_model(BPs);
 
 
 %%
-img_b1_if = nan(sum(isopen),256,432);
-img_b1_dark = nan(1,256,432);
-img_b1_d  = nan(sum(isopen),256,432);
-[defective_pixels] = vir_defective_pixels();
-good_pixels = (defective_pixels==0);
-good_pixels_1nan = convertBoolTo1nan(good_pixels);
-img_A = I1Adata.img.*good_pixels_1nan; % only consider good pixels.
-for c = 5:256
-    %%
-    %c = 66;
-    % bands = 180:294;
-    %imgc = squeeze(I1Bim_if(:,c,:))';
-    %imgc_b = imgc(bands,:);
-    % covert I1A to I/F
-    imgc_A = squeeze(img_A(isopen,c,:))';
-    dark = squeeze(img_A(1,c,:));
-    valid_bands = squeeze(good_pixels(:,c,bands));
-    s_opt = select_stretch_scaling_param4dark(imgc_A(bands(valid_bands),:),dark(bands(valid_bands)));
-    dark_s = stretch_dark(dark(bands),s_opt);
-    
-    img_b1_dark(1,c,bands) = reshape(dark_s',[1,1,length(bands)]);
-
-    imgc_A_d = imgc_A(bands,:) - dark_s;
-    imgc_A_d_r = imgc_A_d./(squeeze(respdata.img(1,c,bands))*ir_expo);
-    imgc_b1 = imgc_A_d_r ./ SS(bands) .*pi .* (d_au.^2);
-    
-    img_b1_d(:,c,bands) = reshape(imgc_A_d',[sum(isopen),1,length(bands)]);
-    img_b1_if(:,c,bands) = reshape(imgc_b1',[sum(isopen),1,length(bands)]);
-    
-%     figure(1); plot(bands,imgc_A_d);
-%     title(num2str(c));
-%     pause;
-
-end
-%I1Bim_if_cor_v2 = (img_b1_if-biasList)./multList;
-
-%%
 % a3 = load('VIR_IR_1B_1_366393039_3_cor_b2590t3773_v3.mat');
 % I1Bim_if_cor_v3 = (img_b1_if-a3.biasList)./a3.multList;
-
-%%
-imgc = squeeze(I1Bim_if(:,c,:))';
-imgc_b = imgc(bands,:);
-
-% initialization parameters
-%load artifact_matrix.mat artifact_matrix
-%d0 = 1+artifact_matrix(bands,c);
-imgc_mean = nanmean(imgc,2);
-[imgc_mean_smthd] = vir_oddeven_rmvl_wInterp(imgc_mean,wv);
-imgc_mean_b = imgc_mean(bands);
-c00 = imgc_mean - imgc_mean_smthd;
-c0 = c00(bands);
-
-d0 = squeeze(vesta_parameters.multList(1,c,bands));
-
-if any(imgc_mean_b<0.01) % exception when we have bad detectors. should be deal with more smartly.
-    imgc = squeeze(I1Bim_if(:,c,:))';
-    imgc_b = imgc(bands,:);
-
-    % initialization parameters
-    %load artifact_matrix.mat artifact_matrix
-    %d0 = 1+artifact_matrix(bands,c);
-    imgc_mean = nanmean(imgc,2);
-    imgc_mean_b = imgc_mean(bands);
-    valid_bands = imgc_mean_b>0.01;
-    [imgc_mean_smthd] = vir_oddeven_rmvl_wInterp(imgc_mean_b(valid_bands),wvb(valid_bands));
-    c0 = imgc_mean_b(valid_bands) - imgc_mean_smthd;
-    c0(1) = 0;
-    c0(end) = 0;
-
-    %Alib_b_nrmed_sub = Alib_b_nrmed(:,[h_i e_i d_i a_i c_i s_i a1_i a2_i k_i carb_i sulf_i oxi_i]);
-    %valid_idx_b = ~any(isnan(Alib_b_nrmed_sub),1);
-    [X,d1,c1] = vir_unmixing_denoiser_e(Alib_b_nrmed_sub_valid,...
-        BBif_b_nrmed(valid_bands,:),imgc_b(valid_bands,:),wvb(valid_bands),'C0',c0,'D0',d0(valid_bands),'Lambda_a_lib',0.01);
-    biasList(1,c,bands(valid_bands)) = c1;
-    multList(1,c,bands(valid_bands)) = d1;
-    biasList(1,c,bands(~valid_bands)) = nan;
-    multList(1,c,bands(~valid_bands)) = nan;
-else
-    %idx_lib = [h_i e_i d_i a_i c_i s_i a1_i a2_i k_i carb_i sulf_i oxi_i];
-    %idx_lib = unique(idx_lib);
-    %Alib_b_nrmed_sub = Alib_b_nrmed(:,idx_lib);
-    %valid_idx_b = ~any(isnan(Alib_b_nrmed_sub),1);
-    % d0 = squeeze(vesta_parameters.multList(1,47,bands));
-    [X,d1,c1,C,Z,Xlib,XBB] = vir_unmixing_denoiser_e(Alib_b_nrmed_sub_valid,BBif_b_nrmed,imgc_b,wvb,'C0',c0,'D0',d0,'Lambda_a_lib',0.1);
-    biasList(1,c,bands) = c1;
-    multList(1,c,bands) = d1;
-end
         
     
 %%
