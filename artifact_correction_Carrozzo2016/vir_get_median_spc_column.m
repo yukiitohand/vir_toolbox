@@ -1,5 +1,5 @@
-function [vir1Bimc_list_med,vir1Bimc_list_valid] = vir_get_median_spc_column(sctime_info,idxes_valid,isinc_lt_theta_list,c,varargin)
-% [I1Bimc_list_med,I1Bimc_list_valid] = vir_get_median_spc_column(sctime_info,idxes_valid,isinc_lt_theta_list,c,varargin)
+function [vir1Bimc_list_med,vir1Bimc_list] = vir_get_median_spc_column(sctime_info,idxes_valid,isinc_lt_theta_list,c,varargin)
+% [vir1Bimc_list_med,vir1Bimc_list] = vir_get_median_spc_column(sctime_info,idxes_valid,isinc_lt_theta_list,c,varargin)
 %  Compute median spectrum for a given column c over the valid pixels 
 %  specified by isinc_lt_theta_list of the images sctime_info(idxes_valid)
 %
@@ -17,8 +17,8 @@ function [vir1Bimc_list_med,vir1Bimc_list_valid] = vir_get_median_spc_column(sct
 %                spectra.
 %  c  : column for which median is computed.
 % OUTPUTS
-%  I1Bimc_list_med: [1 x B] median spectrum
-%  I1Bimc_list: [L' x B] concatenation of all the spectra from 
+%  vir1Bimc_list_med: [1 x B] median spectrum
+%  vir1Bimc_list: [L' x B] concatenation of all the spectra from 
 %               sctime_info(idxes_valid). The actual spectra used for
 %               median is obtained by I1Bimc_list(isinc_lt_theta_list(:,c),:)
 % Optional Parameters
