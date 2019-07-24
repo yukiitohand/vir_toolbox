@@ -77,7 +77,7 @@ end
 [silicate,s_i] = searchby_multfield({'type1','type2','subType'},'silicate',spclib_relab_ftir_bdvnir_a);
 [diopside,diop_i] = searchby_multfield({'type1','type2','subType'},'diopside',spclib_relab_ftir_bdvnir_a);
 
-load Library_2018_ftir_bdbnir A Ahat spclib_relab_ftir_bdvnir_a
+load Library_2018_ftir_bdvnir A Ahat spclib_relab_ftir_bdvnir_a
 
 load library
 

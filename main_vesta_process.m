@@ -55,7 +55,7 @@ I1Bim_if = vir_ra2if(I1Bdata,SolSpcdata);
 %     end
 % end
 
-load Library_2018_ftir_bdbnir A Ahat spclib_relab_ftir_bdvnir_a
+load Library_2018_ftir_bdvnir A Ahat spclib_relab_ftir_bdvnir_a
 
 [howardite,h_i] = searchby_multfield({'type1','type2','subType'},'howardite',spclib_relab_ftir_bdvnir_a);
 [Eucrite,e_i] = searchby_multfield({'type1','type2','subType'},'eucrite',spclib_relab_ftir_bdvnir_a);
